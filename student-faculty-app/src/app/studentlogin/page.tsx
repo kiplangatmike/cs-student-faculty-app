@@ -15,8 +15,9 @@ export default function Home() {
 
     const { result, error } = await signIn({ password, email });
     if (error) {
-      console.log(error);
-      return;
+        window.alert("Invalid email or password");
+        console.log(error);
+        return;
     }
     console.log(result);
     router.push("/home");
