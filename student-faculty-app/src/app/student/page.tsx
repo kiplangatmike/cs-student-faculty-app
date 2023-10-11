@@ -4,10 +4,13 @@ import Notification from "@/components/notification";
 import signup from "../../firebase/auth/signup";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Provider, useDispatch } from "react-redux";
+import useUser from "@/redux/hooks/useUser";
 
 export default function Home() {
+  const { user, isLoggedIn, login, logout } = useUser();
   const [password, setPassword] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
+  const [email, setEmail] = useState<any>("");
   const [verifyPassword, setVerifyPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
@@ -15,19 +18,76 @@ export default function Home() {
   const passwordInputRef = React.useRef<HTMLInputElement>(null);
   const reenterPasswordInputRef = React.useRef<HTMLInputElement>(null);
   const [notification, setNotification] = useState<any>(null);
+  const [blankError, setBlankError] = useState<any>(null);
+  const [invalidEmail, setInvalideEmail] = useState<any>("");
   const router = useRouter();
+
+  const dispatch = useDispatch();
+
+
+  // useEffect(() => {
+  //   if(typeof window !== 'undefined') {
+  //     const storedUser = localStorage.getItem("user");
+  //     const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+  //     dispatch(setUser({email: parsedUser?.email || null}));
+  //     if (storedUser) {
+  //       router.push("/home");
+  //     }console.log("user", storedUser)
+  //   }
+  // }, []);
+  
+  // const handleForm = async (event:any) => {
+  //   event.preventDefault();
+
+  //   try {
+  //     // dispatch(setLoading(true));
+  //     if (!email || !password) {
+  //       setBlankError("Please provide both email and password");
+  //     }
+  //     const emailRegex = /^[a-zA-Z0-9]+@(?:[a-zA-Z0-9]+\.)+[A-Za-z]+$/;
+  //     if (!emailRegex.test(email)) {
+  //       setInvalideEmail("Please provide a valid email");
+  //     }
+  //     const { result, error } = await signup({ password: password || '', email: email || '' });
+  //     if (error) {
+  //       console.log(error);
+  //       return;
+  //     }
+  //     localStorage.setItem("user", JSON.stringify(email));
+  //     dispatch(setUser(email));
+  //     console.log(result);
+  //     router.push("/home");
+
+  //   } catch (error) {
+  //     const typeError = error as TypeError;
+  //     dispatch(setError(typeError.message));
+  //   } finally {
+  //     dispatch(setLoading(false));
+  //   }
+    // if (error) {
+    //   console.log(error);
+    //   return;
+    // }
+    // console.log(result);
+    // router.push("/home");
+  // };
 
   const handleForm = async (event: any) => {
     event.preventDefault();
+    const { result, error } = await signup({ password: password || '', email: email || '' });
+      if (error) {
+        console.log(error);
+        return;
+      }
+      login({email: email || '', password: password || ''});
+      console.log(result);
+      router.push("/home");
+  }
 
-    const { result, error } = await signup({ password, email });
-    if (error) {
-      console.log(error);
-      return;
-    }
-    console.log(result);
-    router.push("/home");
-  };
+  useEffect(() => {
+    console.log(user);
+  }, [isLoggedIn]);
+
 
   const passwordValidation = (password: any) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -66,15 +126,28 @@ export default function Home() {
   }, []);
 
   return (
+    // <Provider store={store}>
     <div className="h-screen flex items-center">
       <div className="w-[50%] mx-auto bg-gray-600 p-10 rounded-xl ">
         <h1 className="text-center text-xl font-bold"> Welcome Back </h1>
         <h1 className="text-center"> Sign up</h1>
         <form onSubmit={handleForm}>
-          {/* <div>
-            <label htmlFor="name" className="block text-gray-700 font-bold mb-2"></label>
-            <input type="text" id="name" className="w-full px-3 py-2 border rounded-lg focus:outline-none" value={name} onChange={(e) => setName(e.target.value)} placeholder="name"/>
-          </div> */}
+          <div>
+            {blankError && (
+              <Notification
+                message={blankError}
+                type="error"
+                onClose={() => setBlankError(null)}
+              />
+            )}
+            {invalidEmail && (
+              <Notification
+                message={invalidEmail}
+                type="error"
+                onClose={() => setInvalideEmail(null)}
+              />
+            )}
+          </div>
           <div>
             <label
               htmlFor="email"
@@ -123,15 +196,30 @@ export default function Home() {
               ref={reenterPasswordInputRef}
             />
           </div>
-          <div><p>Have an account? <Link href="/studentsignup" className="text-blue-500 hover:underline">Login</Link> </p></div>
+          <div>
+            <p>
+              Have an account?{" "}
+              <Link
+                href="/studentlogin"
+                className="text-blue-500 hover:underline"
+              >
+                Login
+              </Link>{" "}
+            </p>
+          </div>
           <div className="text-center pt-10">
-            <button type="submit" className="bg-gray-800 px-5 py-1 rounded-lg disabled:bg-gray-800/10" disabled={!isPasswordValid}>
+            <button
+              type="submit"
+              className="bg-gray-800 px-5 py-1 rounded-lg disabled:bg-gray-800/10"
+              disabled={!isPasswordValid}
+            >
               submit
             </button>
           </div>
         </form>
       </div>
     </div>
+    // </Provider>
   );
 }
 

@@ -4,27 +4,22 @@ import {
   DocumentData,
   addDoc,
   collection,
-  doc,
-  getDoc,
   getDocs,
   query,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { useAuthContext } from "../../context/authContext";
 import { useRouter } from "next/navigation";
 import { db } from "../../firebase/firestore/firebaseFirestore";
 import React from "react";
+import { useSelector } from "react-redux";
+import useUser from "@/redux/hooks/useUser";
 
 function MyComponent() {
-  const { user } = useAuthContext();
+  const { logout, isLoggedIn } = useUser();
   const router = useRouter();
-
-  React.useEffect(() => {
-    if (user == null) {
-      router.push("/facilitatorlogin");
-    }
-  }, [user]);
-
+  const selector = (state: any) => state.auth;
+  const auth = useSelector(selector);
+  console.log(auth);
   const [posts, setPosts] = useState<any>([]);
   // const [docId, setDocId] = useState<any>([]);
   const [comments, setComments] = useState<any>([]);
@@ -103,10 +98,21 @@ function MyComponent() {
     }));
   };
 
+  const handleLogout = () => {
+    logout();
+    router.push("/firstpage");
+  };
+
+  useEffect(() => {
+    if (isLoggedIn === false) {
+      router.push("/firstpage");
+    }
+  }, [isLoggedIn])
+
   return (
     <div>
       <div className="w-[80%] my-3 flex justify-between mx-auto">
-        <h1 className="text-4xl font-bold">Student's Issues</h1><button className="bg-gray-900 font-bold w-fit rounded-xl px-2 py-1">logout</button></div>
+        <h1 className="text-4xl font-bold">Student's Issues</h1><button className="bg-gray-900 font-bold w-fit rounded-xl px-2 py-1" onClick={handleLogout}>logout</button></div>
       <div>
         {posts.map((post: any) => (
           <div className="w-[80%] mx-auto bg-gray-600 p-10 rounded-xl my-3">

@@ -19,7 +19,7 @@ export default function Home() {
       return;
     }
     console.log(result);
-    router.push("/home");
+    router.push("/posts");
   };
 
   const passwordValidation = (password: any) => {

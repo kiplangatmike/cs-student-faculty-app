@@ -4,24 +4,27 @@ import Notification from "@/components/notification";
 import signIn from "@/firebase/auth/signin";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { login } from "@/redux/authSlice";
+import { useSelector } from "react-redux";
+import useUser from "@/redux/hooks/useUser";
 
 export default function Home() {
   const [password, setPassword] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const router = useRouter();
 
-  const handleForm = async (event: any) => {
-    event.preventDefault();
+  // const handleForm = async (event: any) => {
+  //   event.preventDefault();
 
-    const { result, error } = await signIn({ password, email });
-    if (error) {
-        window.alert("Invalid email or password");
-        console.log(error);
-        return;
-    }
-    console.log(result);
-    router.push("/home");
-  };
+  //   const { result, error } = await signIn({ password, email });
+  //   if (error) {
+  //       window.alert("Invalid email or password");
+  //       console.log(error);
+  //       return;
+  //   }
+  //   console.log(result);
+  //   router.push("/home");
+  // };
 
   const passwordValidation = (password: any) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -32,6 +35,23 @@ export default function Home() {
     const newPassword = e.target.value;
     setPassword(newPassword);
   };
+
+  const { user, isLoggedIn, login, logout } = useUser();
+  const handleForm = async (event: any) => {
+    event.preventDefault();
+    const { result, error } = await signIn({ password: password || '', email: email || '' });
+      if (error) {
+        console.log(error);
+        return;
+      }
+      login({email: email || '', password: password || ''});
+      console.log(result);
+      router.push("/home");
+  }
+
+  useEffect(() => {
+    console.log(user);
+  }, [isLoggedIn]);
 
 
   return (
@@ -72,7 +92,7 @@ export default function Home() {
               placeholder="password"
             />
           </div>
-          <div><p>don't have an account? <Link href="/facilitator" className="text-blue-500 hover:underline">sign up</Link> </p></div>
+          <div><p>don't have an account? <Link href="/student" className="text-blue-500 hover:underline">sign up</Link> </p></div>
           <div className="text-center pt-10">
             <button type="submit" className="bg-gray-800 px-5 py-1 rounded-lg disabled:bg-gray-800/10">
               submit
